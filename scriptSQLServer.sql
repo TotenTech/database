@@ -214,14 +214,10 @@ VALUES
     (0, 0, 0, 1, 10);
     
 INSERT INTO componentes (totem, tipo, nome, total, minimo, maximo) VALUES
-    (1, 'CPU', 'Intel i7', 3.4, 1.0, 4.0),
-    (2, 'RAM', 'Corsair 16GB', 16.0, 2.0, 32.0),
-    (3, 'HDD', 'Seagate 1TB', 1024.0, 100.0, 2000.0);
-
-INSERT INTO registros (valor, unidadeDeMedida, componente) VALUES
-    ('2.5', 'GHz', 1),
-    ('8', 'GB', 2),
-    ('500', 'GB', 3);
+	(1, 'Cpu', 'Intel i7', 3.4, 1.0, 4.0),
+	(1, 'Memoria', 'Corsair 16GB', 16.0, 2.0, 32.0),
+	(1, 'Disco', 'Seagate 1TB', 1024.0, 100.0, 2000.0),
+    (1, 'Rede', 'Net claro', 200.0, 5.0, null);
 
 -- SELECT TESTS
 SELECT * FROM empresa;
