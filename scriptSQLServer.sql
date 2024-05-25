@@ -7,14 +7,18 @@ BEGIN
 END;
 GO
 
+
 -- Remover restrições de chave estrangeira
 IF OBJECT_ID('dbo.fk_empresa_endereco', 'F') IS NOT NULL ALTER TABLE dbo.empresa DROP CONSTRAINT fk_empresa_endereco;
 IF OBJECT_ID('dbo.fk_empresa_assinatura', 'F') IS NOT NULL ALTER TABLE dbo.empresa DROP CONSTRAINT fk_empresa_assinatura;
 IF OBJECT_ID('dbo.fk_usuario_empresa', 'F') IS NOT NULL ALTER TABLE dbo.usuario DROP CONSTRAINT fk_usuario_empresa;
 IF OBJECT_ID('dbo.fk_usuario_tipo', 'F') IS NOT NULL ALTER TABLE dbo.usuario DROP CONSTRAINT fk_usuario_tipo;
 IF OBJECT_ID('dbo.fk_totem_empresa', 'F') IS NOT NULL ALTER TABLE dbo.totem DROP CONSTRAINT fk_totem_empresa;
-IF OBJECT_ID('dbo.fk_componente_totem', 'F') IS NOT NULL ALTER TABLE dbo.componentes DROP CONSTRAINT fk_componente_totem;
-IF OBJECT_ID('dbo.fk_registro_componente', 'F') IS NOT NULL ALTER TABLE dbo.registros DROP CONSTRAINT fk_registro_componente;
+IF OBJECT_ID('dbo.fk_componente_tipo', 'F') IS NOT NULL ALTER TABLE dbo.componente DROP CONSTRAINT fk_componente_tipo;
+IF OBJECT_ID('dbo.fk_componente_totem', 'F') IS NOT NULL ALTER TABLE dbo.componente DROP CONSTRAINT fk_componente_totem;
+IF OBJECT_ID('dbo.fk_especificacao_componente', 'F') IS NOT NULL ALTER TABLE dbo.especificacao DROP CONSTRAINT fk_especificacao_componente;
+IF OBJECT_ID('dbo.fk_especificacao_tipo', 'F') IS NOT NULL ALTER TABLE dbo.especificacao DROP CONSTRAINT fk_especificacao_tipo;
+IF OBJECT_ID('dbo.fk_registro_componente', 'F') IS NOT NULL ALTER TABLE dbo.registro DROP CONSTRAINT fk_registro_componente;
 IF OBJECT_ID('dbo.fk_interrupcoes_totem', 'F') IS NOT NULL ALTER TABLE dbo.interrupcoes DROP CONSTRAINT fk_interrupcoes_totem;
 IF OBJECT_ID('dbo.fk_visualizacao_totem', 'F') IS NOT NULL ALTER TABLE dbo.visualizacao DROP CONSTRAINT fk_visualizacao_totem;
 GO
@@ -25,12 +29,15 @@ IF OBJECT_ID('dbo.contrato', 'U') IS NOT NULL DROP TABLE dbo.contrato;
 IF OBJECT_ID('dbo.tipo', 'U') IS NOT NULL DROP TABLE dbo.tipo;
 IF OBJECT_ID('dbo.usuario', 'U') IS NOT NULL DROP TABLE dbo.usuario;
 IF OBJECT_ID('dbo.totem', 'U') IS NOT NULL DROP TABLE dbo.totem;
-IF OBJECT_ID('dbo.componentes', 'U') IS NOT NULL DROP TABLE dbo.componentes;
-IF OBJECT_ID('dbo.registros', 'U') IS NOT NULL DROP TABLE dbo.registros;
+IF OBJECT_ID('dbo.tipoComponente', 'U') IS NOT NULL DROP TABLE dbo.tipoComponente;
+IF OBJECT_ID('dbo.componente', 'U') IS NOT NULL DROP TABLE dbo.componente;
+IF OBJECT_ID('dbo.especificacao', 'U') IS NOT NULL DROP TABLE dbo.especificacao;
+IF OBJECT_ID('dbo.registro', 'U') IS NOT NULL DROP TABLE dbo.registro;
 IF OBJECT_ID('dbo.interrupcoes', 'U') IS NOT NULL DROP TABLE dbo.interrupcoes;
 IF OBJECT_ID('dbo.visualizacao', 'U') IS NOT NULL DROP TABLE dbo.visualizacao;
 IF OBJECT_ID('dbo.excluirTudoTotem', 'P') IS NOT NULL DROP PROCEDURE dbo.excluirTudoTotem;
 GO
+
 
 CREATE DATABASE totemTech;
 GO
@@ -106,28 +113,50 @@ CREATE TABLE totem (
     REFERENCES empresa (idEmpresa)
 );
 
-CREATE TABLE componentes (
-  idcomponente INT PRIMARY KEY IDENTITY,
-  totem INT,
-  tipo VARCHAR(45),
-  nome VARCHAR(45),
-  total FLOAT,
-  minimo FLOAT,
-  maximo FLOAT,
-  CONSTRAINT fk_componente_totem
-    FOREIGN KEY (totem)
-    REFERENCES totem (idtotem)
+CREATE TABLE tipoComponente (
+    idtipoComponente INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(45)
 );
 
-CREATE TABLE registros (
-  idregistro INT PRIMARY KEY IDENTITY,
-  valor VARCHAR(45),
-  unidadeDeMedida VARCHAR(45),
-  horario DATETIME DEFAULT CURRENT_TIMESTAMP,
-  componente INT,
-  CONSTRAINT fk_registro_componente
-    FOREIGN KEY (componente)
-    REFERENCES componentes (idcomponente)
+CREATE TABLE componente (
+    idcomponente INT AUTO_INCREMENT,
+    totem INT,
+    nome VARCHAR(45),
+    tipo INT,
+    CONSTRAINT fk_componente_tipo
+        FOREIGN KEY (tipo)
+        REFERENCES tipoComponente(idtipoComponente),
+    CONSTRAINT fk_componente_totem
+        FOREIGN KEY (totem)
+        REFERENCES totem(idtotem),
+    PRIMARY KEY (idcomponente)
+);
+
+CREATE TABLE especificacao (
+    idespecificacao INT AUTO_INCREMENT,
+    nome VARCHAR(45),
+    valor VARCHAR(45),
+    unidadeMedida VARCHAR(45),
+    componente INT,
+    tipo INT,
+    CONSTRAINT fk_especificacao_componente
+        FOREIGN KEY (componente)
+        REFERENCES componente(idcomponente),
+    CONSTRAINT fk_especificacao_tipo
+        FOREIGN KEY (tipo)
+        REFERENCES tipoComponente(idtipoComponente),
+    PRIMARY KEY (idespecificacao)
+);
+
+CREATE TABLE registro (
+    idregistro INT AUTO_INCREMENT,
+    valor VARCHAR(45),
+    horario DATETIME DEFAULT CURRENT_TIMESTAMP,
+    componente INT,
+    CONSTRAINT fk_registro_componente
+        FOREIGN KEY (componente)
+        REFERENCES componente(idcomponente),
+    PRIMARY KEY (idregistro)
 );
 
 CREATE TABLE interrupcoes (
@@ -212,20 +241,35 @@ VALUES
     (0, 0, 1, 1, 8),
     (1, 1, 1, 1, 9),
     (0, 0, 0, 1, 10);
-    
-INSERT INTO componentes (totem, tipo, nome, total, minimo, maximo) VALUES
-    (1, 'CPU', 'Intel i7', 3.4, 1.0, 4.0),
-    (2, 'RAM', 'Corsair 16GB', 16.0, 2.0, 32.0),
-    (3, 'HDD', 'Seagate 1TB', 1024.0, 100.0, 2000.0);
 
-INSERT INTO registros (valor, unidadeDeMedida, componente) VALUES
-    ('2.5', 'GHz', 1),
-    ('8', 'GB', 2),
-    ('500', 'GB', 3);
+INSERT INTO tipoComponente (nome) VALUES
+	('CPU'),
+	('RAM'),
+	('HDD'),
+  ('Rede');
+
+INSERT INTO componente (totem, tipo, nome) VALUES
+	(1, 1, 'Intel i7'),  
+	(2, 2, 'Corsair 16GB'),  
+	(3, 3, 'Seagate 1TB'),
+  (5, 5, 'Ethernet Adapter'),;  
+
+INSERT INTO especificacao (nome, valor, unidadeMedida, componente, tipo) VALUES
+	('Frequência', '3.4', 'GHz', 1, 1),  
+	('Capacidade', '16', 'GB', 2, 2), 
+  ('Velocidade', '1', 'Gbps', 5, 5), 
+	('Armazenamento', '1024', 'GB', 3, 3); 
+
+INSERT INTO registro (valor, componente) VALUES
+	('2.5', 1),
+	('8', 2),
+  ('0.9', 5),
+	('500', 3);
 
 -- SELECT TESTS
 SELECT * FROM empresa;
 SELECT * FROM usuario;
 SELECT * FROM totem;
+SELECT * FROM tipoComponente;
 SELECT * FROM interrupcoes;
 SELECT * FROM visualizacao;

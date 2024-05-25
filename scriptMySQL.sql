@@ -42,17 +42,15 @@ CREATE TABLE empresa (
     REFERENCES contrato (idplano));
 
 
-
 CREATE TABLE tipo (
   idtipo INT primary key AUTO_INCREMENT,
   descricao VARCHAR(45));
 
 
-
 CREATE TABLE usuario (
-  idusuario INT primary key auto_increment,
+  idusuario INT AUTO_INCREMENT PRIMARY KEY,
   nome VARCHAR(45),
-  email VARCHAR(70) unique,
+  email VARCHAR(70) UNIQUE,
   senha VARCHAR(12),
   empresa INT,
   tipo INT,
@@ -62,64 +60,92 @@ CREATE TABLE usuario (
   CONSTRAINT fk_usuario_tipo
     FOREIGN KEY (tipo)
     REFERENCES tipo (idtipo));
-
-
+    
+    
 CREATE TABLE totem (
-  idtotem INT primary key auto_increment,
-  nome VARCHAR(45),
-  login VARCHAR(45) unique,
-  senha VARCHAR(45),
-  sistemaOperacional VARCHAR(45),
-  empresa INT,
-  CONSTRAINT fk_totem_empresa
-    FOREIGN KEY (empresa)
-    REFERENCES empresa (idEmpresa));
-    
-CREATE TABLE componentes (
-	idcomponente INT auto_increment,
-    totem int,
-    tipo VARCHAR(45),
+	idtotem INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(45),
-    total Double,
-    minimo Double,
-    maximo Double,
-    CONSTRAINT fk_componente_totem
-		FOREIGN KEY (totem)
-        REFERENCES totem (idtotem),
-	primary key (idcomponente, totem));
-    
-CREATE TABLE registros(
-	idregistro INT auto_increment,
-    valor VARCHAR(45),
-    unidadeDeMedida VARCHAR(45),
-    horario DATETIME default current_timestamp,
-    componente INT,
-    CONSTRAINT fk_registro_componente
-		FOREIGN KEY (componente)
-        REFERENCES componentes (idcomponente),
-	primary key (idregistro, componente));
+    login VARCHAR(45) UNIQUE,
+    senha VARCHAR(45),
+    sistemaOperacional VARCHAR(45),
+    empresa INT,
+    CONSTRAINT fk_totem_empresa
+        FOREIGN KEY (empresa)
+        REFERENCES empresa(idEmpresa)
+);
 
+
+CREATE TABLE tipoComponente (
+    idtipoComponente INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(45)
+);
+
+
+CREATE TABLE componente (
+    idcomponente INT AUTO_INCREMENT,
+    totem INT,
+    nome VARCHAR(45),
+    tipo INT,
+    CONSTRAINT fk_componente_tipo
+        FOREIGN KEY (tipo)
+        REFERENCES tipoComponente(idtipoComponente),
+    CONSTRAINT fk_componente_totem
+        FOREIGN KEY (totem)
+        REFERENCES totem(idtotem),
+    PRIMARY KEY (idcomponente)
+);
+
+
+CREATE TABLE especificacao (
+    idespecificacao INT AUTO_INCREMENT,
+    nome VARCHAR(45),
+    valor VARCHAR(45),
+    unidadeMedida VARCHAR(45),
+    componente INT,
+    tipo INT,
+    CONSTRAINT fk_especificacao_componente
+        FOREIGN KEY (componente)
+        REFERENCES componente(idcomponente),
+    CONSTRAINT fk_especificacao_tipo
+        FOREIGN KEY (tipo)
+        REFERENCES tipoComponente(idtipoComponente),
+    PRIMARY KEY (idespecificacao)
+);
+
+    
+CREATE TABLE registro (
+    idregistro INT AUTO_INCREMENT,
+    valor VARCHAR(45),
+    horario DATETIME DEFAULT CURRENT_TIMESTAMP,
+    componente INT,
+    CONSTRAINT fk_registros_componente
+        FOREIGN KEY (componente)
+        REFERENCES componente(idcomponente),
+    PRIMARY KEY (idregistro)
+);
 
 CREATE TABLE interrupcoes (
-  idinterrupcoes INT primary key AUTO_INCREMENT,
-  horario DATETIME default current_timestamp,
-  motivo VARCHAR(45),
-  totem INT,
+	idinterrupcoes INT AUTO_INCREMENT PRIMARY KEY,
+	horario DATETIME DEFAULT CURRENT_TIMESTAMP,
+	motivo VARCHAR(45),
+	totem INT,
   CONSTRAINT fk_interrupcoes_totem
     FOREIGN KEY (totem)
     REFERENCES totem (idtotem));
 
 
 CREATE TABLE visualizacao (
-  idvisualizacao INT primary key AUTO_INCREMENT,
-  cpu INT,
-  memoria INT,
-  disco INT,
-  rede INT,
-  totem INT,
-  CONSTRAINT fk_visualizacao_totem
-    FOREIGN KEY (totem)
-    REFERENCES totem (idtotem));
+    idvisualizacao INT AUTO_INCREMENT PRIMARY KEY,
+    cpu INT,
+    memoria INT,
+    disco INT,
+    rede INT,
+    totem INT,
+    CONSTRAINT fk_visualizacao_totem
+        FOREIGN KEY (totem)
+        REFERENCES totem(idtotem)
+);
+
 
 -- PROCEDURES
 
@@ -139,39 +165,38 @@ DELIMITER
 -- INSERTS
 
 INSERT INTO contrato (tipo, limiteUsuarios, limiteTotens, dtInicio, dtFinal) VALUES 
-	('Básico', 10, 5, '2024-01-01', '2024-12-31'),
-	('Premium', 50, 25, '2024-01-01', '2024-12-31');
+    ('Básico', 10, 5, '2024-01-01', '2024-12-31'),
+    ('Premium', 50, 25, '2024-01-01', '2024-12-31');
 
 INSERT INTO endereco (logradouro, bairro, numero, cep, complemento) VALUES 
-	('Rua das Flores', 'Centro', 123, '12345678', 'Bloco A');
+    ('Rua das Flores', 'Centro', 123, '12345678', 'Bloco A');
 
 INSERT INTO tipo (descricao) VALUES
-	('Funcionários'),
-	('Gerente');
+    ('Funcionários'),
+    ('Gerente');
 
 INSERT INTO empresa (nome, endereco, assinatura, razaoSocial, nomeFantasia, cnpj) VALUES
-	('MC Donalds', 1, 1, 'Mec', 'Mec', '12345678901234');
+    ('MC Donalds', 1, 1, 'Mec', 'Mec', '12345678901234');
 
 INSERT INTO usuario (nome, email, senha, empresa, tipo) VALUES
-	('Gabriel', 'gabriel.amaral@sptech.school', '123', 1, 2), 
-	('João Silva', 'joao.silva@empresa.com', 'senha123', 1, 1),
-	('Tallyon Lima', 'tallyon.lima@sptech.school', '123456', 1, 2);
+    ('Gabriel', 'gabriel.amaral@sptech.school', '123', 1, 2), 
+    ('João Silva', 'joao.silva@empresa.com', 'senha123', 1, 1),
+    ('Tallyon Lima', 'tallyon.lima@sptech.school', '123456', 1, 2);
 
 INSERT INTO totem (nome, login, senha, sistemaOperacional, empresa) VALUES
-('Totem 1', 'login1', 'senha123', 'Windows', 1),
-('Totem 2', 'login2', 'senha123', 'Linux', 1),
-('Totem 3', 'login3', 'senha123', 'Windows', 1),
-('Totem 4', 'login4', 'senha123', 'Linux', 1),
-('Totem 5', 'login5', 'senha123', 'Windows', 1),
-('Totem 6', 'login6', 'senha123', 'Linux', 1),
-('Totem 7', 'login7', 'senha123', 'Windows', 1),
-('Totem 8', 'login8', 'senha123', 'Linux', 1),
-('Totem 9', 'login9', 'senha123', 'Windows', 1),
-('Totem 10', 'login10', 'senha123', 'Linux', 1);
+    ('Totem 1', 'login1', 'senha123', 'Windows', 1),
+    ('Totem 2', 'login2', 'senha123', 'Linux', 1),
+    ('Totem 3', 'login3', 'senha123', 'Windows', 1),
+    ('Totem 4', 'login4', 'senha123', 'Linux', 1),
+    ('Totem 5', 'login5', 'senha123', 'Windows', 1),
+    ('Totem 6', 'login6', 'senha123', 'Linux', 1),
+    ('Totem 7', 'login7', 'senha123', 'Windows', 1),
+    ('Totem 8', 'login8', 'senha123', 'Linux', 1),
+    ('Totem 9', 'login9', 'senha123', 'Windows', 1),
+    ('Totem 10', 'login10', 'senha123', 'Linux', 1);
 
-
-INSERT INTO interrupcoes (horario, motivo, totem)
-VALUES ('2024-04-20 10:30:00', 'Memória RAM', 1);
+INSERT INTO interrupcoes (motivo, totem)
+VALUES ('Memória RAM', 1);
 
 INSERT INTO visualizacao (cpu, memoria, disco, rede, totem)
 VALUES 
@@ -185,20 +210,35 @@ VALUES
     (0, 0, 1, 1, 8),
     (1, 1, 1, 1, 9),
     (0, 0, 0, 1, 10);
-    
-INSERT INTO componentes (totem, tipo, nome, total, minimo, maximo) VALUES
-	(1, 'CPU', 'Intel i7', 3.4, 1.0, 4.0),
-	(2, 'RAM', 'Corsair 16GB', 16.0, 2.0, 32.0),
-	(3, 'HDD', 'Seagate 1TB', 1024.0, 100.0, 2000.0);
-    
-INSERT INTO registros (valor, unidadeDeMedida, componente) VALUES
-	('2.5', 'GHz', 1),
-	('8', 'GB', 2),
-	('500', 'GB', 3);
 
--- SELECTS DE TESTE
-select * from empresa;
-select * from usuario;
-select * from totem;
-select * from interrupcoes;
-select * from visualizacao;
+INSERT INTO tipoComponente (nome) VALUES
+	('CPU'),
+	('RAM'),
+	('HDD'),
+  ('Rede');
+
+INSERT INTO componente (totem, tipo, nome) VALUES
+	(1, 1, 'Intel i7'),  
+	(2, 2, 'Corsair 16GB'),  
+	(3, 3, 'Seagate 1TB'),
+  (5, 5, 'Ethernet Adapter'),;  
+
+INSERT INTO especificacao (nome, valor, unidadeMedida, componente, tipo) VALUES
+	('Frequência', '3.4', 'GHz', 1, 1),  
+	('Capacidade', '16', 'GB', 2, 2), 
+  ('Velocidade', '1', 'Gbps', 5, 5), 
+	('Armazenamento', '1024', 'GB', 3, 3); 
+
+INSERT INTO registro (valor, componente) VALUES
+	('2.5', 1),
+	('8', 2),
+  ('0.9', 5),
+	('500', 3);
+
+-- SELECT TESTS
+SELECT * FROM empresa;
+SELECT * FROM usuario;
+SELECT * FROM totem;
+SELECT * FROM tipoComponente;
+SELECT * FROM interrupcoes;
+SELECT * FROM visualizacao;
