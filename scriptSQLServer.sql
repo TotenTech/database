@@ -195,16 +195,16 @@ GO
 
 -- INSERTS
 
+INSERT INTO tipo (descricao) VALUES
+    ('Funcionários'),
+    ('Gerente');
+    
 INSERT INTO contrato (tipo, limiteUsuarios, limiteTotens, dtInicio, dtFinal) VALUES 
     ('Básico', 10, 5, '2024-01-01', '2024-12-31'),
     ('Premium', 50, 25, '2024-01-01', '2024-12-31');
 
 INSERT INTO endereco (logradouro, bairro, numero, cep, complemento) VALUES 
     ('Rua das Flores', 'Centro', 123, '12345678', 'Bloco A');
-
-INSERT INTO tipo (descricao) VALUES
-    ('Funcionários'),
-    ('Gerente');
 
 INSERT INTO empresa (nome, endereco, assinatura, razaoSocial, nomeFantasia, cnpj) VALUES
     ('MC Donalds', 1, 1, 'Mec', 'Mec', '12345678901234');
@@ -235,7 +235,7 @@ VALUES
     (0, 1, 0, 1, 2),
     (1, 0, 1, 1, 3),
     (0, 1, 0, 1, 4),
-    (1, 1, 1, 0, 5),
+    (1, 1, 1, 0, 5), 
     (1, 0, 1, 1, 6),
     (1, 1, 0, 0, 7),
     (0, 0, 1, 1, 8),
@@ -244,27 +244,27 @@ VALUES
 
 INSERT INTO tipoComponente (nome) VALUES
 	('CPU'),
-	('RAM'),
-	('HDD'),
-  ('Rede');
+	('Memoria'),
+	('Disco'),
+	('Rede');
 
 INSERT INTO componente (totem, tipo, nome) VALUES
 	(1, 1, 'Intel i7'),  
-	(2, 2, 'Corsair 16GB'),  
-	(3, 3, 'Seagate 1TB'),
-  (5, 5, 'Ethernet Adapter'),;  
+	(1, 2, 'Corsair 16GB'),  
+	(1, 3, 'Seagate 1TB'),
+	(1, 4, 'Net Claro');  
 
 INSERT INTO especificacao (nome, valor, unidadeMedida, componente, tipo) VALUES
 	('Frequência', '3.4', 'GHz', 1, 1),  
-	('Capacidade', '16', 'GB', 2, 2), 
-  ('Velocidade', '1', 'Gbps', 5, 5), 
-	('Armazenamento', '1024', 'GB', 3, 3); 
+	('Capacidade', '16', 'GB', 2, 2),
+	('Armazenamento', '1024', 'GB', 3, 3),
+  ('Velocidade', '1', 'Gbps', 4, 4); 
 
 INSERT INTO registro (valor, componente) VALUES
 	('2.5', 1),
 	('8', 2),
-  ('0.9', 5),
-	('500', 3);
+	('500', 3),
+	('0.9', 4);
 
 -- SELECT TESTS
 SELECT * FROM empresa;
