@@ -7,37 +7,11 @@ BEGIN
 END;
 GO
 
-
--- Remover restrições de chave estrangeira
-IF OBJECT_ID('dbo.fk_empresa_endereco', 'F') IS NOT NULL ALTER TABLE dbo.empresa DROP CONSTRAINT fk_empresa_endereco;
-IF OBJECT_ID('dbo.fk_empresa_assinatura', 'F') IS NOT NULL ALTER TABLE dbo.empresa DROP CONSTRAINT fk_empresa_assinatura;
-IF OBJECT_ID('dbo.fk_usuario_empresa', 'F') IS NOT NULL ALTER TABLE dbo.usuario DROP CONSTRAINT fk_usuario_empresa;
-IF OBJECT_ID('dbo.fk_usuario_tipo', 'F') IS NOT NULL ALTER TABLE dbo.usuario DROP CONSTRAINT fk_usuario_tipo;
-IF OBJECT_ID('dbo.fk_totem_empresa', 'F') IS NOT NULL ALTER TABLE dbo.totem DROP CONSTRAINT fk_totem_empresa;
-IF OBJECT_ID('dbo.fk_componente_tipo', 'F') IS NOT NULL ALTER TABLE dbo.componente DROP CONSTRAINT fk_componente_tipo;
-IF OBJECT_ID('dbo.fk_componente_totem', 'F') IS NOT NULL ALTER TABLE dbo.componente DROP CONSTRAINT fk_componente_totem;
-IF OBJECT_ID('dbo.fk_especificacao_componente', 'F') IS NOT NULL ALTER TABLE dbo.especificacao DROP CONSTRAINT fk_especificacao_componente;
-IF OBJECT_ID('dbo.fk_especificacao_tipo', 'F') IS NOT NULL ALTER TABLE dbo.especificacao DROP CONSTRAINT fk_especificacao_tipo;
-IF OBJECT_ID('dbo.fk_registro_componente', 'F') IS NOT NULL ALTER TABLE dbo.registro DROP CONSTRAINT fk_registro_componente;
-IF OBJECT_ID('dbo.fk_interrupcoes_totem', 'F') IS NOT NULL ALTER TABLE dbo.interrupcoes DROP CONSTRAINT fk_interrupcoes_totem;
-IF OBJECT_ID('dbo.fk_visualizacao_totem', 'F') IS NOT NULL ALTER TABLE dbo.visualizacao DROP CONSTRAINT fk_visualizacao_totem;
+CREATE DATABASE totemTech;
 GO
 
-IF OBJECT_ID('dbo.empresa', 'U') IS NOT NULL DROP TABLE dbo.empresa;
-IF OBJECT_ID('dbo.endereco', 'U') IS NOT NULL DROP TABLE dbo.endereco;
-IF OBJECT_ID('dbo.contrato', 'U') IS NOT NULL DROP TABLE dbo.contrato;
-IF OBJECT_ID('dbo.tipo', 'U') IS NOT NULL DROP TABLE dbo.tipo;
-IF OBJECT_ID('dbo.usuario', 'U') IS NOT NULL DROP TABLE dbo.usuario;
-IF OBJECT_ID('dbo.totem', 'U') IS NOT NULL DROP TABLE dbo.totem;
-IF OBJECT_ID('dbo.tipoComponente', 'U') IS NOT NULL DROP TABLE dbo.tipoComponente;
-IF OBJECT_ID('dbo.componente', 'U') IS NOT NULL DROP TABLE dbo.componente;
-IF OBJECT_ID('dbo.especificacao', 'U') IS NOT NULL DROP TABLE dbo.especificacao;
-IF OBJECT_ID('dbo.registro', 'U') IS NOT NULL DROP TABLE dbo.registro;
-IF OBJECT_ID('dbo.interrupcoes', 'U') IS NOT NULL DROP TABLE dbo.interrupcoes;
-IF OBJECT_ID('dbo.visualizacao', 'U') IS NOT NULL DROP TABLE dbo.visualizacao;
-IF OBJECT_ID('dbo.excluirTudoTotem', 'P') IS NOT NULL DROP PROCEDURE dbo.excluirTudoTotem;
+USE totemTech;
 GO
-
 IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'totemTech')
 BEGIN
     CREATE DATABASE totemTech;
@@ -114,12 +88,12 @@ CREATE TABLE totem (
     REFERENCES empresa (idEmpresa)
 );
 CREATE TABLE tipoComponente (
-    idtipoComponente INT IDENTITY(1,1) PRIMARY KEY,
+    idtipoComponente INT IDENTITY PRIMARY KEY,
     nome VARCHAR(45)
 );
 
 CREATE TABLE componente (
-    idcomponente INT IDENTITY(1,1) PRIMARY KEY,
+    idcomponente INT IDENTITY PRIMARY KEY,
     totem INT,
     nome VARCHAR(45),
     tipo INT,
@@ -132,7 +106,7 @@ CREATE TABLE componente (
 );
 
 CREATE TABLE especificacao (
-    idespecificacao INT IDENTITY(1,1) PRIMARY KEY,
+    idespecificacao INT IDENTITY PRIMARY KEY,
     nome VARCHAR(45),
     valor VARCHAR(45),
     unidadeMedida VARCHAR(45),
@@ -147,7 +121,7 @@ CREATE TABLE especificacao (
 );
 
 CREATE TABLE registro (
-    idregistro INT IDENTITY(1,1) PRIMARY KEY,
+    idregistro INT IDENTITY PRIMARY KEY,
     valor VARCHAR(45),
     horario DATETIME DEFAULT GETDATE(),
     componente INT,
@@ -157,7 +131,7 @@ CREATE TABLE registro (
 );
 
 CREATE TABLE interrupcoes (
-    idinterrupcoes INT IDENTITY(1,1) PRIMARY KEY,
+    idinterrupcoes INT IDENTITY PRIMARY KEY,
     horario DATETIME DEFAULT GETDATE(),
     motivo VARCHAR(45),
     totem INT,
@@ -167,7 +141,7 @@ CREATE TABLE interrupcoes (
 );
 
 CREATE TABLE visualizacao (
-    idvisualizacao INT IDENTITY(1,1) PRIMARY KEY,
+    idvisualizacao INT IDENTITY PRIMARY KEY,
     cpu INT,
     memoria INT,
     disco INT,
@@ -253,21 +227,16 @@ INSERT INTO componente (totem, tipo, nome) VALUES
 	(1, 4, 'Net Claro');  
 
 INSERT INTO especificacao (nome, valor, unidadeMedida, componente, tipo) VALUES
-	('Frequência', '3.4', 'GHz', 1, 1),  
-	('Capacidade', '16', 'GB', 2, 2),
-	('Armazenamento', '1024', 'GB', 3, 3),
-  ('Velocidade', '1', 'Gbps', 4, 4); 
+	('maximo', '90.0', '%', 1, 1),
+	('total', '16.0', 'GB', 2, 2),
+	('maximo', '89.0', '%', 2, 2),
+	('total', '1000.0', 'GB', 3, 3),
+	('maximo', '90.0', '%', 3, 3),
+	('minimo', '5.0', 'MB/s', 4, 4),
+	('ideal', '10.0', 'MB/s', 4, 4);
 
 INSERT INTO registro (valor, componente) VALUES
 	('2.5', 1),
 	('8', 2),
 	('500', 3),
 	('0.9', 4);
-
--- SELECT TESTS
-SELECT * FROM empresa;
-SELECT * FROM usuario;
-SELECT * FROM totem;
-SELECT * FROM tipoComponente;
-SELECT * FROM interrupcoes;
-SELECT * FROM visualizacao;
