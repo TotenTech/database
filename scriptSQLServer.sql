@@ -38,9 +38,10 @@ IF OBJECT_ID('dbo.visualizacao', 'U') IS NOT NULL DROP TABLE dbo.visualizacao;
 IF OBJECT_ID('dbo.excluirTudoTotem', 'P') IS NOT NULL DROP PROCEDURE dbo.excluirTudoTotem;
 GO
 
-
-CREATE DATABASE totemTech;
-GO
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'totemTech')
+BEGIN
+    CREATE DATABASE totemTech;
+END
 
 USE totemTech;
 GO
@@ -112,14 +113,13 @@ CREATE TABLE totem (
     FOREIGN KEY (empresa)
     REFERENCES empresa (idEmpresa)
 );
-
 CREATE TABLE tipoComponente (
-    idtipoComponente INT AUTO_INCREMENT PRIMARY KEY,
+    idtipoComponente INT IDENTITY(1,1) PRIMARY KEY,
     nome VARCHAR(45)
 );
 
 CREATE TABLE componente (
-    idcomponente INT AUTO_INCREMENT,
+    idcomponente INT IDENTITY(1,1) PRIMARY KEY,
     totem INT,
     nome VARCHAR(45),
     tipo INT,
@@ -128,12 +128,11 @@ CREATE TABLE componente (
         REFERENCES tipoComponente(idtipoComponente),
     CONSTRAINT fk_componente_totem
         FOREIGN KEY (totem)
-        REFERENCES totem(idtotem),
-    PRIMARY KEY (idcomponente)
+        REFERENCES totem(idtotem)
 );
 
 CREATE TABLE especificacao (
-    idespecificacao INT AUTO_INCREMENT,
+    idespecificacao INT IDENTITY(1,1) PRIMARY KEY,
     nome VARCHAR(45),
     valor VARCHAR(45),
     unidadeMedida VARCHAR(45),
@@ -144,42 +143,41 @@ CREATE TABLE especificacao (
         REFERENCES componente(idcomponente),
     CONSTRAINT fk_especificacao_tipo
         FOREIGN KEY (tipo)
-        REFERENCES tipoComponente(idtipoComponente),
-    PRIMARY KEY (idespecificacao)
+        REFERENCES tipoComponente(idtipoComponente)
 );
 
 CREATE TABLE registro (
-    idregistro INT AUTO_INCREMENT,
+    idregistro INT IDENTITY(1,1) PRIMARY KEY,
     valor VARCHAR(45),
-    horario DATETIME DEFAULT CURRENT_TIMESTAMP,
+    horario DATETIME DEFAULT GETDATE(),
     componente INT,
     CONSTRAINT fk_registro_componente
         FOREIGN KEY (componente)
-        REFERENCES componente(idcomponente),
-    PRIMARY KEY (idregistro)
+        REFERENCES componente(idcomponente)
 );
 
 CREATE TABLE interrupcoes (
-  idinterrupcoes INT PRIMARY KEY IDENTITY,
-  horario DATETIME DEFAULT CURRENT_TIMESTAMP,
-  motivo VARCHAR(45),
-  totem INT,
-  CONSTRAINT fk_interrupcoes_totem
-    FOREIGN KEY (totem)
-    REFERENCES totem (idtotem)
+    idinterrupcoes INT IDENTITY(1,1) PRIMARY KEY,
+    horario DATETIME DEFAULT GETDATE(),
+    motivo VARCHAR(45),
+    totem INT,
+    CONSTRAINT fk_interrupcoes_totem
+        FOREIGN KEY (totem)
+        REFERENCES totem(idtotem)
 );
 
 CREATE TABLE visualizacao (
-  idvisualizacao INT PRIMARY KEY IDENTITY,
-  cpu INT,
-  memoria INT,
-  disco INT,
-  rede INT,
-  totem INT,
-  CONSTRAINT fk_visualizacao_totem
-    FOREIGN KEY (totem)
-    REFERENCES totem (idtotem)
+    idvisualizacao INT IDENTITY(1,1) PRIMARY KEY,
+    cpu INT,
+    memoria INT,
+    disco INT,
+    rede INT,
+    totem INT,
+    CONSTRAINT fk_visualizacao_totem
+        FOREIGN KEY (totem)
+        REFERENCES totem(idtotem)
 );
+
 
 -- PROCEDURES
 
