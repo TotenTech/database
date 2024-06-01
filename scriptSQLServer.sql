@@ -7,11 +7,30 @@ BEGIN
 END;
 GO
 
+DROP DATABASE totemTech;
+GO
+
 CREATE DATABASE totemTech;
 GO
 
 USE totemTech;
 GO
+
+
+IF OBJECT_ID('dbo.InsertComponenteEspecificacaoDisco', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.InsertComponenteEspecificacao;
+GO
+IF OBJECT_ID('dbo.InsertComponenteEspecificacao2', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.InsertComponenteEspecificacao;
+GO
+IF OBJECT_ID('dbo.DeleteTotem', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.DeleteTotem;
+GO
+IF OBJECT_ID('dbo.UpdateComponenteEspecificacao', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.InsertComponenteEspecificacao;
+GO
+
+
 IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'totemTech')
 BEGIN
     CREATE DATABASE totemTech;
@@ -87,6 +106,7 @@ CREATE TABLE totem (
     FOREIGN KEY (empresa)
     REFERENCES empresa (idEmpresa)
 );
+
 CREATE TABLE tipoComponente (
     idtipoComponente INT IDENTITY PRIMARY KEY,
     nome VARCHAR(45)
@@ -153,17 +173,139 @@ CREATE TABLE visualizacao (
 );
 
 
+GO
 -- PROCEDURES
 
-GO
-CREATE PROCEDURE excluirTudoTotem (@iddTotem INT)
+CREATE PROCEDURE InsertComponenteEspecificacao2
+    @nomeComponente VARCHAR(45),
+    @nomeEspecificacao1 VARCHAR(45),
+    @valorEspecificacao1 VARCHAR(45),
+    @unidadeMedidaEspecificacao1 VARCHAR(45),
+    @nomeEspecificacao2 VARCHAR(45),
+    @valorEspecificacao2 VARCHAR(45),
+    @unidadeMedidaEspecificacao2 VARCHAR(45),
+    @nomeComponenteCPU VARCHAR(45),
+    @valorCPU VARCHAR(45),
+    @unidadeMedidaCPU VARCHAR(45),
+    @nomeComponenteRede VARCHAR(45),
+    @nomeEspecificacao1Rede VARCHAR(45),
+    @valorEspecificacao1Rede VARCHAR(45),
+    @unidadeMedidaEspecificacao1Rede VARCHAR(45),
+    @nomeEspecificacao2Rede VARCHAR(45),
+    @valorEspecificacao2Rede VARCHAR(45),
+    @unidadeMedidaEspecificacao2Rede VARCHAR(45)
 AS
 BEGIN
-    DELETE FROM visualizacao WHERE totem = @iddTotem;
-    DELETE FROM componentes WHERE totem = @iddTotem;
-    DELETE FROM totem WHERE idtotem = @iddTotem;
+
+    INSERT INTO componente (totem, tipo, nome)
+    VALUES ((SELECT MAX(idtotem) FROM totem), 1, @nomeComponenteCPU);
+
+    DECLARE @idComponenteCpu INT;
+    SET @idComponenteCpu = SCOPE_IDENTITY();
+
+    INSERT INTO especificacao (nome, valor, unidadeMedida, componente, tipo)
+    VALUES (@nomeEspecificacao1, @valorCPU, @unidadeMedidaCPU, @idComponenteCpu, 1);
+
+    INSERT INTO componente (totem, tipo, nome)
+    VALUES ((SELECT MAX(idtotem) FROM totem), 2, @nomeComponente);
+
+    DECLARE @idComponente INT;
+    SET @idComponente = SCOPE_IDENTITY();
+
+    INSERT INTO especificacao (nome, valor, unidadeMedida, componente, tipo)
+    VALUES (@nomeEspecificacao1, @valorEspecificacao1, @unidadeMedidaEspecificacao1, @idComponente, 2),
+           (@nomeEspecificacao2, @valorEspecificacao2, @unidadeMedidaEspecificacao2, @idComponente, 2);
+
+    INSERT INTO componente (totem, tipo, nome)
+    VALUES ((SELECT MAX(idtotem) FROM totem), 4, @nomeComponenteRede);
+
+    DECLARE @idComponenteRede INT;
+    SET @idComponenteRede = SCOPE_IDENTITY();
+
+    INSERT INTO especificacao (nome, valor, unidadeMedida, componente, tipo)
+    VALUES (@nomeEspecificacao1Rede, @valorEspecificacao1Rede, @unidadeMedidaEspecificacao1Rede, @idComponenteRede, 4),
+           (@nomeEspecificacao2Rede, @valorEspecificacao2Rede, @unidadeMedidaEspecificacao2Rede, @idComponenteRede, 4);
 END;
 GO
+
+
+
+
+CREATE PROCEDURE InsertComponenteEspecificacaoDisco
+    @nomeComponente VARCHAR(45),
+    @nomeEspecificacao1 VARCHAR(45),
+    @valorEspecificacao1 VARCHAR(45),
+    @unidadeMedidaEspecificacao1 VARCHAR(45),
+    @nomeEspecificacao2 VARCHAR(45),
+    @valorEspecificacao2 VARCHAR(45),
+    @unidadeMedidaEspecificacao2 VARCHAR(45)
+AS
+BEGIN
+ 
+    INSERT INTO componente (totem, tipo, nome)
+    VALUES ((SELECT MAX(idtotem) FROM totem), 3, @nomeComponente);
+
+    DECLARE @idComponente INT;
+    SET @idComponente = SCOPE_IDENTITY();
+
+    INSERT INTO especificacao (nome, valor, unidadeMedida, componente, tipo)
+    VALUES 
+	(@nomeEspecificacao1, @valorEspecificacao1, @unidadeMedidaEspecificacao1, @idComponente, 3),
+	(@nomeEspecificacao2, @valorEspecificacao2, @unidadeMedidaEspecificacao2, @idComponente, 3);
+END;
+
+GO
+
+
+
+CREATE PROCEDURE DeleteTotem
+    @idTotem INT
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM totem WHERE idtotem = @idTotem)
+    BEGIN
+        
+        DELETE e
+        FROM especificacao e
+        INNER JOIN componente c ON e.componente = c.idcomponente
+        WHERE c.totem = @idTotem;
+
+        DELETE r
+        FROM registro r
+        INNER JOIN componente c ON r.componente = c.idcomponente
+        WHERE c.totem = @idTotem;
+
+        DELETE FROM componente WHERE totem = @idTotem;
+
+        DELETE FROM interrupcoes WHERE totem = @idTotem;
+
+        DELETE FROM visualizacao WHERE totem = @idTotem;
+
+        DELETE FROM totem WHERE idtotem = @idTotem;
+
+    END
+END;
+GO
+
+
+CREATE PROCEDURE dbo.UpdateComponenteEspecificacao
+    @idComponente int,
+	@nomeComponente VARCHAR(45),
+	@idespecificacao int,
+	@valorEspecificacao VARCHAR(45)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+	UPDATE componente SET nome = @nomeComponente WHERE idcomponente = @idComponente;
+	UPDATE especificacao SET valor = @valorEspecificacao WHERE idespecificacao  =@idespecificacao;
+
+    SET NOCOUNT OFF;
+END;
+GO
+
+
+
 
 -- INSERTS
 
@@ -179,7 +321,7 @@ INSERT INTO endereco (logradouro, bairro, numero, cep, complemento) VALUES
     ('Rua das Flores', 'Centro', 123, '12345678', 'Bloco A');
 
 INSERT INTO empresa (nome, endereco, assinatura, razaoSocial, nomeFantasia, cnpj) VALUES
-    ('MC Donalds', 1, 1, 'Mec', 'Mec', '12345678901234');
+    ('Totem Tech', 1, 1, 'Totem Tech', 'Totem Tech', '12345678901234');
 
 INSERT INTO usuario (nome, email, senha, empresa, tipo) VALUES
     ('Gabriel', 'gabriel.amaral@sptech.school', '123', 1, 2), 
@@ -224,16 +366,152 @@ INSERT INTO componente (totem, tipo, nome) VALUES
 	(1, 1, 'Intel i7'),  
 	(1, 2, 'Corsair 16GB'),  
 	(1, 3, 'Seagate 1TB'),
-	(1, 4, 'Net Claro');  
+	(1, 4, 'Net Claro'),
 
-INSERT INTO especificacao (nome, valor, unidadeMedida, componente, tipo) VALUES
-	('maximo', '90.0', '%', 1, 1),
+	(2, 1, 'Intel i7'), 
+    (2, 2, 'Kingston 8GB'), 
+    (2, 3, 'Western Digital 500GB'), 
+    (2, 3, 'Samsung SSD 250GB'),
+    (2, 4, 'Net Claro'),
+
+    (3, 1, 'Intel i7'), 
+    (3, 2, 'Crucial 4GB'), 
+    (3, 3, 'Samsung SSD 250GB'), 
+    (3, 4, 'Net Claro'),
+
+    (4, 1, 'Intel i7'), 
+    (4, 2, 'G.Skill 32GB'), 
+    (4, 3, 'Toshiba 2TB'), 
+    (4, 3, 'Hitachi 1TB'),  
+    (4, 4, 'Net Claro'),
+
+    (5, 1, 'Intel i7'), 
+    (5, 2, 'HyperX 16GB'), 
+    (5, 3, 'Hitachi 1TB'), 
+    (5, 4, 'Net Claro'),
+
+    (6, 1, 'Intel i7'), 
+    (6, 2, 'Corsair 32GB'), 
+    (6, 3, 'Seagate 2TB'), 
+    (6, 4, 'Net Claro'),
+
+    (7, 1, 'Intel i7'), 
+    (7, 2, 'Kingston 16GB'), 
+    (7, 3, 'Western Digital 1TB'), 
+    (7, 3, 'Samsung SSD 500GB'),  -- Segundo disco para totem 7
+    (7, 4, 'Net Claro'),
+
+    (8, 1, 'Intel i7'), 
+    (8, 2, 'Crucial 8GB'), 
+    (8, 3, 'Samsung SSD 500GB'), 
+    (8, 3, 'Toshiba 1TB'), 
+    (8, 4, 'Net Claro'),
+
+    (9, 1, 'Intel i7'), 
+    (9, 2, 'G.Skill 4GB'), 
+    (9, 3, 'Toshiba 1TB'), 
+    (9, 3, 'Western Digital 500GB'),  
+    (9, 4, 'Net Claro'),
+
+    (10, 1, 'Intel i7'), 
+    (10, 2, 'HyperX 2GB'), 
+    (10, 3, 'Hitachi 500GB'), 
+    (10, 3, 'Samsung SSD 250GB'), 
+    (10, 4, 'Net Claro');
+
+INSERT INTO especificacao (nome, valor, unidadeMedida, componente, tipo) VALUES 
+    ('maximo', '90.0', '%', 1, 1),
 	('total', '16.0', 'GB', 2, 2),
 	('maximo', '89.0', '%', 2, 2),
 	('total', '1000.0', 'GB', 3, 3),
 	('maximo', '90.0', '%', 3, 3),
 	('minimo', '5.0', 'MB/s', 4, 4),
-	('ideal', '10.0', 'MB/s', 4, 4);
+	('ideal', '10.0', 'MB/s', 4, 4),
+
+    ('maximo', '90.0', '%', 5, 1), 
+    ('total', '8.0', 'GB', 6, 2), 
+    ('maximo', '89.0', '%', 6, 2), 
+    ('total', '500.0', 'GB', 7, 3),
+    ('maximo', '90.0', '%', 7, 3), 
+    ('total', '250.0', 'GB', 8, 3), 
+	('maximo', '90.0', '%', 8, 3),
+    ('minimo', '5.0', 'MB/s', 9, 4), 
+    ('ideal', '10.0', 'MB/s', 9, 4),
+
+    ('maximo', '90.0', '%', 10, 1), 
+    ('total', '4.0', 'GB', 11, 2), 
+    ('maximo', '89.0', '%', 11, 2), 
+    ('total', '250.0', 'GB', 12, 3), 
+    ('maximo', '90.0', '%', 12, 3),
+    ('minimo', '5.0', 'MB/s', 13, 4), 
+    ('ideal', '10.0', 'MB/s', 13, 4),
+
+    ('maximo', '90.0', '%', 14, 1), 
+    ('total', '32.0', 'GB', 15, 2), 
+    ('maximo', '89.0', '%', 15, 2), 
+    ('total', '2000.0', 'GB', 16, 3), 
+    ('maximo', '90.0', '%', 16, 3), 
+    ('total', '1000.0', 'GB', 17, 3),
+	('maximo', '90.0', '%', 17, 3),
+    ('minimo', '5.0', 'MB/s', 18, 4), 
+    ('ideal', '10.0', 'MB/s', 18, 4),
+
+    ('maximo', '90.0', '%', 19, 1), 
+    ('total', '16.0', 'GB', 20, 2), 
+    ('maximo', '89.0', '%', 20, 2), 
+    ('total', '1000.0', 'GB', 21, 3),
+	('maximo', '90.0', '%', 21, 3),
+    ('minimo', '5.0', 'MB/s', 22, 4), 
+    ('ideal', '10.0', 'MB/s', 22, 4),
+
+    ('maximo', '90.0', '%', 23, 1), 
+    ('total', '32.0', 'GB', 24, 2), 
+    ('maximo', '89.0', '%', 24, 2), 
+    ('total', '2000.0', 'GB', 25, 3), 
+    ('maximo', '90.0', '%', 25, 3),
+    ('minimo', '5.0', 'MB/s', 26, 4), 
+    ('ideal', '10.0', 'MB/s', 26, 4),
+
+    ('maximo', '90.0', '%', 27, 1), 
+    ('total', '16.0', 'GB', 28, 2), 
+    ('maximo', '89.0', '%', 28, 2), 
+    ('total', '1000.0', 'GB', 29, 3), 
+    ('maximo', '90.0', '%', 29, 3), 
+    ('total', '500.0', 'GB', 30, 3),
+	('maximo', '90.0', '%', 30, 3),
+    ('minimo', '5.0', 'MB/s', 31, 4), 
+    ('ideal', '10.0', 'MB/s', 31, 4),
+
+    ('maximo', '90.0', '%', 32, 1), 
+    ('total', '8.0', 'GB', 33, 2), 
+    ('maximo', '89.0', '%', 33, 2), 
+    ('total', '500.0', 'GB', 34, 3), 
+    ('maximo', '500.0', '%', 34, 3), 
+    ('total', '1000.0', 'GB', 35, 3),
+	('maximo', '90.0', '%', 35, 3),
+    ('minimo', '5.0', 'MB/s', 36, 4), 
+    ('ideal', '10.0', 'MB/s', 36, 4),
+
+	('maximo', '90.0', '%', 37, 1), 
+    ('total', '4.0', 'GB', 38, 2), 
+    ('maximo', '89.0', '%', 38, 2), 
+    ('total', '500.0', 'GB', 39, 3), 
+    ('maximo', '1000.0', '%', 39, 3), 
+    ('total', '250.0', 'GB', 40, 3),
+	('maximo', '500.0', '%', 40, 3),
+    ('minimo', '5.0', 'MB/s', 41, 4), 
+    ('ideal', '10.0', 'MB/s', 41, 4),
+
+	('maximo', '90.0', '%', 42, 1), 
+    ('total', '2.0', 'GB', 43, 2), 
+    ('maximo', '89.0', '%', 43, 2), 
+    ('total', '500.0', 'GB', 44, 3), 
+    ('maximo', '90.0', '%', 44, 3), 
+    ('total', '250.0', 'GB', 45, 3),
+	('maximo', '90.0', '%', 45, 3),
+    ('minimo', '5.0', 'MB/s', 46, 4), 
+    ('ideal', '10.0', 'MB/s', 46, 4);
+
 
 INSERT INTO registro (valor, componente) VALUES
 	('2.5', 1),
