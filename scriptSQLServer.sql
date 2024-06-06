@@ -23,12 +23,16 @@ GO
 IF OBJECT_ID('dbo.InsertComponenteEspecificacao2', 'P') IS NOT NULL
     DROP PROCEDURE dbo.InsertComponenteEspecificacao;
 GO
+IF OBJECT_ID('dbo.InsertTotalDisco', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.InsertTotalDisco;
+GO
 IF OBJECT_ID('dbo.DeleteTotem', 'P') IS NOT NULL
     DROP PROCEDURE dbo.DeleteTotem;
 GO
 IF OBJECT_ID('dbo.UpdateComponenteEspecificacao', 'P') IS NOT NULL
     DROP PROCEDURE dbo.InsertComponenteEspecificacao;
 GO
+
 
 
 IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'totemTech')
@@ -108,8 +112,8 @@ CREATE TABLE totem (
 );
 
 CREATE TABLE tipoComponente (
-    idtipoComponente INT IDENTITY PRIMARY KEY,
-    nome VARCHAR(45)
+		idtipoComponente INT IDENTITY PRIMARY KEY,
+		nome VARCHAR(45)
 );
 
 CREATE TABLE componente (
@@ -256,6 +260,24 @@ END;
 
 GO
 
+
+CREATE PROCEDURE InsertTotalDisco
+    @totalDisco VARCHAR(45)
+AS
+BEGIN
+ 
+    INSERT INTO componente (totem, tipo, nome)
+    VALUES ((SELECT MAX(idtotem) FROM totem), 5, 'Todal Disco');
+
+    DECLARE @idComponente INT;
+    SET @idComponente = SCOPE_IDENTITY();
+
+    INSERT INTO especificacao (nome, valor, unidadeMedida, componente, tipo)
+    VALUES 
+	('total', @totalDisco, 'GB',  @idComponente, 5);
+END;
+
+GO
 
 
 CREATE PROCEDURE DeleteTotem
