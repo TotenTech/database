@@ -1,7 +1,7 @@
 -- CREATE USER and DATABASE
 IF NOT EXISTS (SELECT * FROM sys.sql_logins WHERE name = N'totemMaster')
 BEGIN
-    CREATE LOGIN totemMaster WITH PASSWORD = '12345';
+    CREATE LOGIN totemMaster WITH PASSWORD = 'ComplexPassword@2024';
     CREATE USER totemMaster FOR LOGIN totemMaster;
     EXEC sp_addsrvrolemember 'totemMaster', 'sysadmin';
 END;
